@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Hitung mundur peperiksaan SPM 2026 — live countdown untuk 29 kertas merentasi 11 subjek, 26 Oktober hingga 17 Disember 2026.">
+<meta name="theme-color" content="#0b0f16" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f1e3" media="(prefers-color-scheme: light)">
+<title>SPM 2026 Countdown</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+<!-- Styles -->
+<link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="brand">
+      <div class="brand-mark">SPM</div>
+      <div class="brand-text">
+        <div class="brand-year">2026</div>
+        <div class="brand-sub">Hitung Mundur Peperiksaan</div>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Tukar tema">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+      </svg>
+      <span id="themeLabel">Tema</span>
+    </button>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="hero-label" id="heroLabel">Peperiksaan Seterusnya</div>
+    <h1 class="hero-subject" id="heroSubject">—</h1>
+    <div class="hero-paper" id="heroPaper">—</div>
+    <div class="hero-date" id="heroDate">
+      <span id="heroDateText">—</span>
+    </div>
+    <div class="hero-countdown" id="heroCountdown">
+      <div class="cd-unit primary"><div class="cd-value" data-unit="days">00</div><div class="cd-label">Hari</div></div>
+      <div class="cd-unit"><div class="cd-value" data-unit="hours">00</div><div class="cd-label">Jam</div></div>
+      <div class="cd-unit"><div class="cd-value" data-unit="minutes">00</div><div class="cd-label">Minit</div></div>
+      <div class="cd-unit"><div class="cd-value" data-unit="seconds">00</div><div class="cd-label">Saat</div></div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Statistik keseluruhan">
+    <div class="stat">
+      <div class="stat-value" id="statFirst">—<span class="stat-suffix">hari</span></div>
+      <div class="stat-label">ke peperiksaan pertama</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="statLast">—<span class="stat-suffix">hari</span></div>
+      <div class="stat-label">ke kertas terakhir (17 Dis)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="statRemaining">—<span class="stat-suffix">/ <span id="statTotal">—</span></span></div>
+      <div class="stat-label">kertas belum diambil</div>
+    </div>
+  </section>
+
+  <h2 class="section-title">Mengikut Subjek <span class="section-count" id="subjectCount">—</span></h2>
+  <div class="subject-grid" id="subjectGrid"></div>
+
+  <h2 class="section-title">Jadual Penuh <span class="section-count" id="timelineCount">—</span></h2>
+  <div class="timeline-list" id="timelineList"></div>
+
+  <footer class="footer">
+    <div>Jadual rasmi Lembaga Peperiksaan, KPM</div>
+    <div class="footer-note">Semoga berjaya.</div>
+  </footer>
+
+</div>
+
+<!-- Scripts: data loads first, then app -->
+<script src="src/js/data.js"></script>
+<script src="src/js/app.js"></script>
+</body>
+</html>
