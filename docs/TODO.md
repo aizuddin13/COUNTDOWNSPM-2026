@@ -15,6 +15,10 @@ Format: `[ ]` belum, `[~]` sedang buat, `[x]` siap. Tag `@claude` atau `@chatgpt
 - [x] @claude Tema gelap/cerah dengan toggle + persist localStorage
 - [x] @claude Responsive 380px → 1120px
 - [x] @claude GitHub Pages workflow
+- [x] @claude Jam & tarikh live dalam header (MYT, update per saat)
+- [x] @claude Export jadual ke .ics (iCalendar) untuk calendar app
+- [x] @chatgpt Reka favicon (SVG adaptive + light/dark variant + PNG fallback)
+- [x] @claude Tambah `<link rel="icon">` dalam `index.html` + apple-touch-icon
 
 ---
 
@@ -28,7 +32,6 @@ _(Takde)_
 
 ### Reka bentuk visual (@chatgpt)
 
-- [ ] @chatgpt Reka favicon (SVG, dark + light variant) — letak dalam `src/assets/`
 - [ ] @chatgpt Open Graph image (1200×630) untuk social share — `src/assets/og-image.png`
 - [ ] @chatgpt Illustration/pattern untuk hero background (optional, subtle)
 - [ ] @chatgpt Icon set untuk subject tags (Amali, Bertutur, Mendengar, Melukis)
@@ -36,11 +39,9 @@ _(Takde)_
 
 ### Teknikal (@claude)
 
-- [ ] @claude Tambah `<link rel="icon">` dalam `index.html` bila favicon dah ada
 - [ ] @claude Tambah Open Graph meta tags bila og-image dah ada
 - [ ] @claude Service worker untuk offline support (nice-to-have)
 - [ ] @claude Study tracker: tandakan subjek yang dah habis belajar (localStorage)
-- [ ] @claude Export to iCal (.ics) untuk subscribe ke calendar app
 - [ ] @claude Lighthouse audit → fix performance/accessibility issues
 
 ### Idea masa depan (parkir dulu)

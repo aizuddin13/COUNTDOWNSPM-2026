@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">SPM Countdown — focused study</title>
+  <desc id="desc">A focused study mark combining an open book and a countdown dial, accented in amber.</desc>
+  <style>
+    .bg { fill: #0b0f16; }
+    .panel { fill: #141a26; stroke: #2a3246; }
+    .line { stroke: #ece6d2; }
+    .soft { stroke: #c6c0ab; }
+    .accent { stroke: #f4b942; }
+    .accent-fill { fill: #f4b942; }
+    @media (prefers-color-scheme: light) {
+      .bg { fill: #f6f1e3; }
+      .panel { fill: #fcf8ec; stroke: #d4ccb6; }
+      .line { stroke: #1c2130; }
+      .soft { stroke: #3b4258; }
+      .accent { stroke: #b07c0d; }
+      .accent-fill { fill: #b07c0d; }
+    }
+  </style>
+  <rect class="bg" x="2" y="2" width="60" height="60" rx="14"/>
+  <rect class="panel" x="2.75" y="2.75" width="58.5" height="58.5" rx="13.25" stroke-width="1.5"/>
+  <!-- Countdown dial: deliberate open arc suggests time in progress, not an alarm. -->
+  <path class="accent" d="M46.5 17.5a20 20 0 0 1 3.2 25.7" fill="none" stroke-width="4" stroke-linecap="round"/>
+  <path class="soft" d="M49.7 43.2l.3 5.1-5-1.2" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Open book / focused study symbol. -->
+  <path class="line" d="M13 23.5c6.4-2.2 12.8-.7 19 4.2 6.2-4.9 12.6-6.4 19-4.2v22c-6.4-2.2-12.8-.7-19 4.2-6.2-4.9-12.6-6.4-19-4.2z" fill="none" stroke-width="3.2" stroke-linejoin="round"/>
+  <path class="soft" d="M32 27.7v22" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+  <path class="accent" d="M19 30.5c3.1-.6 6.2.1 9.1 1.7M19 37c3.1-.6 6.2.1 9.1 1.7M36 32.2c3-1.6 6-2.3 9.1-1.7M36 38.7c3-1.6 6-2.3 9.1-1.7" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+  <circle class="accent-fill" cx="46.4" cy="17.4" r="3.1"/>
+</svg>
