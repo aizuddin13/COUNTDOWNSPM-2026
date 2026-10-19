@@ -702,6 +702,86 @@ img { max-width: 100%; height: auto; }
   letter-spacing: 0.1em;
 }
 
+/* ── Export (calendar download) card ───────────────── */
+.export-card {
+  margin-top: 32px;
+  padding: 24px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+}
+
+.export-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.export-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+  line-height: 1.2;
+  margin-bottom: 6px;
+  font-variation-settings: "opsz" 24;
+}
+
+.export-desc {
+  font-size: 13px;
+  color: var(--muted-strong);
+  line-height: 1.55;
+  max-width: 560px;
+}
+
+.export-desc code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-soft);
+  color: var(--fg-soft);
+}
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--accent);
+  color: #0b0f16;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.08s;
+  flex-shrink: 0;
+}
+
+.export-btn:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.export-btn:active { transform: translateY(1px); }
+
+.export-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.export-btn.export-done {
+  background: var(--calm);
+  border-color: var(--calm);
+  color: #0b0f16;
+}
+
 /* ── Footer ────────────────────────────────────────── */
 .footer {
   margin-top: 48px;
@@ -756,6 +836,20 @@ img { max-width: 100%; height: auto; }
   .now-date { font-size: 9px; letter-spacing: 0.1em; }
   .theme-toggle span { display: none; }
   .theme-toggle { padding: 8px 10px; }
+}
+
+@media (max-width: 640px) {
+  .export-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px;
+  }
+  .export-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 18px;
+  }
 }
 
 @media (max-width: 380px) {

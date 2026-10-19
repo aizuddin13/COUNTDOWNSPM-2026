@@ -79,6 +79,131 @@
     return n.toString().padStart(2, '0');
   }
 
+  // ── iCalendar (.ics) export ──────────────────────────
+  /**
+   * Format a timestamp as iCalendar local time (YYYYMMDDTHHMMSS) in MYT.
+   * Used with TZID=Asia/Kuala_Lumpur reference in VEVENT.
+   */
+  function icsLocalTime(ms) {
+    const d = dateInMYT(ms);
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
+  }
+
+  /** Format a timestamp as iCalendar UTC time (YYYYMMDDTHHMMSSZ). */
+  function icsUtcTime(ms) {
+    const d = new Date(ms);
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+  }
+
+  /** Format a timestamp as iCalendar date-only (YYYYMMDD) in MYT. */
+  function icsDate(ms) {
+    const d = dateInMYT(ms);
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
+  }
+
+  /** Escape text per RFC 5545 §3.3.11: backslash, semicolon, comma, newline. */
+  function icsEscape(text) {
+    return String(text)
+      .replace(/\\/g, '\\\\')
+      .replace(/;/g, '\\;')
+      .replace(/,/g, '\\,')
+      .replace(/\r?\n/g, '\\n');
+  }
+
+  /**
+   * Build an iCalendar document from exam entries.
+   * Multi-day exams (end spans more than 24 hours) become all-day events
+   * because the actual slot is per-candidate.
+   */
+  function buildICS(exams, now) {
+    const dtstamp = icsUtcTime(now);
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//SPM 2026 Countdown//MY',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:SPM 2026',
+      'X-WR-TIMEZONE:Asia/Kuala_Lumpur',
+      'X-WR-CALDESC:Jadual peperiksaan Sijil Pelajaran Malaysia 2026',
+      // Minimal VTIMEZONE (Malaysia has no DST)
+      'BEGIN:VTIMEZONE',
+      'TZID:Asia/Kuala_Lumpur',
+      'BEGIN:STANDARD',
+      'DTSTART:19700101T000000',
+      'TZOFFSETFROM:+0800',
+      'TZOFFSETTO:+0800',
+      'TZNAME:MYT',
+      'END:STANDARD',
+      'END:VTIMEZONE'
+    ];
+
+    exams.forEach(exam => {
+      const slug = (exam.subject + '-' + exam.paper + '-' + exam.startMs)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      const uid = `${slug}@aizuddin13.github.io`;
+      const summary = `SPM: ${exam.subject} — ${exam.paper}`;
+      const description = exam.tag
+        ? `Peperiksaan SPM 2026 (${exam.tag})`
+        : 'Peperiksaan SPM 2026';
+
+      lines.push('BEGIN:VEVENT');
+      lines.push(`UID:${uid}`);
+      lines.push(`DTSTAMP:${dtstamp}`);
+
+      const durationMs = exam.endMs - exam.startMs;
+      if (durationMs > 86400000) {
+        // All-day event (Bertutur sessions assigned per candidate)
+        // DTEND exclusive — add one day to last day
+        const endPlusOne = exam.endMs + 86400000;
+        lines.push(`DTSTART;VALUE=DATE:${icsDate(exam.startMs)}`);
+        lines.push(`DTEND;VALUE=DATE:${icsDate(endPlusOne)}`);
+      } else {
+        lines.push(`DTSTART;TZID=Asia/Kuala_Lumpur:${icsLocalTime(exam.startMs)}`);
+        lines.push(`DTEND;TZID=Asia/Kuala_Lumpur:${icsLocalTime(exam.endMs)}`);
+      }
+
+      lines.push(`SUMMARY:${icsEscape(summary)}`);
+      lines.push(`DESCRIPTION:${icsEscape(description)}`);
+      lines.push('CATEGORIES:SPM 2026');
+      lines.push('STATUS:CONFIRMED');
+      lines.push('TRANSP:OPAQUE');
+
+      // Reminder: 1 day before (not for all-day Bertutur — the slot is per-candidate)
+      if (durationMs <= 86400000) {
+        lines.push('BEGIN:VALARM');
+        lines.push('ACTION:DISPLAY');
+        lines.push(`DESCRIPTION:${icsEscape(summary)}`);
+        lines.push('TRIGGER:-P1D');
+        lines.push('END:VALARM');
+      }
+
+      lines.push('END:VEVENT');
+    });
+
+    lines.push('END:VCALENDAR');
+    // RFC 5545 requires CRLF line endings
+    return lines.join('\r\n') + '\r\n';
+  }
+
+  /** Trigger a download of the .ics file. */
+  function downloadICS() {
+    const ics = buildICS(EXAMS, Date.now());
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'SPM-2026.ics';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }
+
   // ── Grouping ─────────────────────────────────────────
   function groupBySubject() {
     const map = new Map();
@@ -388,6 +513,30 @@
     }
   }
 
+  // ── Calendar export button ───────────────────────────
+  function initCalendarExport() {
+    const btn = document.getElementById('exportIcs');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      try {
+        downloadICS();
+        const label = btn.querySelector('.export-label');
+        if (label) {
+          const original = label.textContent;
+          label.textContent = '✓ Dimuat turun';
+          btn.classList.add('export-done');
+          setTimeout(() => {
+            label.textContent = original;
+            btn.classList.remove('export-done');
+          }, 2500);
+        }
+      } catch (err) {
+        console.error('Export .ics gagal:', err);
+        alert('Maaf, muat turun gagal. Cuba refresh dan ulang.');
+      }
+    });
+  }
+
   // ── Boot ─────────────────────────────────────────────
   function init() {
     if (!EXAMS.length) {
@@ -397,6 +546,7 @@
     renderSubjects();
     renderTimeline();
     initTheme();
+    initCalendarExport();
     tick();
     setInterval(tick, 1000);
   }
