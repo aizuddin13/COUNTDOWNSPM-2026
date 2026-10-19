@@ -163,6 +163,36 @@ img { max-width: 100%; height: auto; }
   font-weight: 500;
 }
 
+.now {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.now-time {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.now-date {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .theme-toggle {
   background: var(--surface);
   color: var(--fg-soft);
@@ -719,7 +749,17 @@ img { max-width: 100%; height: auto; }
   .tl-papers { grid-area: papers; gap: 6px; margin-top: 2px; }
   .brand-year { font-size: 18px; }
   .brand-mark { font-size: 22px; padding: 3px 10px; }
+  .brand-sub { display: none; }
   .mast { padding-bottom: 20px; }
+  .now { padding: 0 6px; }
+  .now-time { font-size: 13px; }
+  .now-date { font-size: 9px; letter-spacing: 0.1em; }
+  .theme-toggle span { display: none; }
+  .theme-toggle { padding: 8px 10px; }
+}
+
+@media (max-width: 380px) {
+  .now-date { display: none; }
 }
 
 @media (max-width: 380px) {

@@ -226,8 +226,21 @@
     return e ? `${e.subject}|${e.paper}|${e.startMs}` : null;
   }
 
+  function updateNow(nowMs) {
+    const d = dateInMYT(nowMs);
+    const timeEl = document.getElementById('nowTime');
+    const dateEl = document.getElementById('nowDate');
+    if (timeEl) {
+      timeEl.textContent = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+    }
+    if (dateEl) {
+      dateEl.textContent = `${DAYS_MY[d.getUTCDay()]}, ${d.getUTCDate()} ${MONTHS_SHORT_MY[d.getUTCMonth()]}`;
+    }
+  }
+
   function tick() {
     const nowMs = Date.now();
+    updateNow(nowMs);
     const nextExam = findNextExam(nowMs);
     const nextKey = examKey(nextExam);
 
