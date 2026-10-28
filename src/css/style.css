@@ -981,6 +981,7 @@ button:focus-visible { outline-offset: 2px; }
 /* Badge ialah imej putih lutsinar; mask + warna tema
    supaya ia kelihatan dalam mod gelap dan cerah. */
 .footer-badge {
+  flex: 0 0 100%;
   width: 150px;
   height: 50px;
   margin: 18px auto 0;
