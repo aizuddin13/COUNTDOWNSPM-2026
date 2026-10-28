@@ -366,6 +366,8 @@
     setText('brandYear', META.brandYear);
     setText('brandSub', META.brandSub);
     setText('footerSource', META.footerSource);
+    setText('exportLabel', META.exportLabel);
+    setHTML('exportDesc', META.exportDesc);
     if (META.docTitle) document.title = META.docTitle;
 
     // Label statistik kertas terakhir: ikut tarikh kertas akhir
@@ -386,6 +388,11 @@
   function setText(id, value) {
     const el = document.getElementById(id);
     if (el && value != null) el.textContent = value;
+  }
+
+  function setHTML(id, value) {
+    const el = document.getElementById(id);
+    if (el && value != null) el.innerHTML = value;
   }
 
   // ── Hero ─────────────────────────────────────────────
