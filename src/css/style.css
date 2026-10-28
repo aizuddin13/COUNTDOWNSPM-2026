@@ -955,3 +955,36 @@ button:focus-visible { outline-offset: 2px; }
   .mode-btn { padding: 10px 8px; }
   .mode-btn .mode-name { font-size: 15px; }
 }
+
+/* ── Logo penaung (MARA & MRSM) di atas ────────────── */
+.logo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+}
+
+.logo-img {
+  height: 84px;
+  width: auto;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .logo-bar { gap: 20px; }
+  .logo-img { height: 60px; }
+}
+
+/* ── Badge Apple Distinguished School (footer) ─────── */
+/* Badge ialah imej putih lutsinar; mask + warna tema
+   supaya ia kelihatan dalam mod gelap dan cerah. */
+.footer-badge {
+  width: 150px;
+  height: 50px;
+  margin: 18px auto 0;
+  background-color: var(--muted-strong);
+  -webkit-mask: url('../assets/logos/apple-distinguished.png') center / contain no-repeat;
+          mask: url('../assets/logos/apple-distinguished.png') center / contain no-repeat;
+}
