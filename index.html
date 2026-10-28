@@ -29,10 +29,10 @@
 
   <header class="mast">
     <div class="brand">
-      <div class="brand-mark">SPM</div>
+      <div class="brand-mark" id="brandMark">SPM</div>
       <div class="brand-text">
-        <div class="brand-year">2026</div>
-        <div class="brand-sub">Hitung Mundur Peperiksaan</div>
+        <div class="brand-year" id="brandYear">2026</div>
+        <div class="brand-sub" id="brandSub">Hitung Mundur Peperiksaan</div>
       </div>
     </div>
     <div class="now" aria-label="Masa semasa (Malaysia)">
@@ -47,6 +47,17 @@
       <span id="themeLabel">Tema</span>
     </button>
   </header>
+
+  <nav class="mode-switch" role="tablist" aria-label="Pilih jadual peperiksaan">
+    <button class="mode-btn" type="button" role="tab" data-mode="spm" aria-selected="true">
+      <span class="mode-name">SPM 2026</span>
+      <span class="mode-sub">Tingkatan 5</span>
+    </button>
+    <button class="mode-btn" type="button" role="tab" data-mode="t4" aria-selected="false">
+      <span class="mode-name">Peperiksaan Akhir T4</span>
+      <span class="mode-sub">Tingkatan 4 · Sem 2</span>
+    </button>
+  </nav>
 
   <section class="hero" id="hero">
     <div class="hero-label" id="heroLabel">Peperiksaan Seterusnya</div>
@@ -70,7 +81,7 @@
     </div>
     <div class="stat">
       <div class="stat-value" id="statLast">—<span class="stat-suffix">hari</span></div>
-      <div class="stat-label">ke kertas terakhir (17 Dis)</div>
+      <div class="stat-label" id="statLastLabel">ke kertas terakhir</div>
     </div>
     <div class="stat">
       <div class="stat-value" id="statRemaining">—<span class="stat-suffix">/ <span id="statTotal">—</span></span></div>
@@ -102,7 +113,7 @@
   </section>
 
   <footer class="footer">
-    <div>Jadual rasmi Lembaga Peperiksaan, KPM</div>
+    <div id="footerSource">Jadual rasmi Lembaga Peperiksaan, KPM</div>
     <div>MAKTAB RENDAH SAINS MARA TAIPING (MARESMART)</div>
     <div class="footer-note">Semoga berjaya.</div>
   </footer>

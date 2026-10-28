@@ -1,19 +1,52 @@
 /* =====================================================
    SPM 2026 Countdown — Application Logic
-   Depends on data.js (SPM_EXAMS, SPM_SUBJECT_ORDER)
+   Depends on data.js (EXAM_DATASETS, DEFAULT_DATASET)
+
+   Dua set jadual (SPM Tingkatan 5 / Peperiksaan Akhir T4)
+   boleh ditukar melalui toggle. Semua paparan — hero,
+   statistik, kad subjek, timeline, minum pagi, dan fail
+   .ics — mengikut dataset yang aktif.
    ===================================================== */
 
 (function () {
   'use strict';
 
-  const EXAMS = window.SPM_EXAMS || [];
-  const SUBJECT_ORDER = window.SPM_SUBJECT_ORDER || [];
+  const DATASETS = window.EXAM_DATASETS || {};
+  const STORAGE_KEY = 'spm-dataset';
 
-  // Normalise: compute startMs/endMs once
-  EXAMS.forEach(e => {
-    e.startMs = new Date(e.start).getTime();
-    e.endMs = e.end ? new Date(e.end).getTime() : e.startMs + 3 * 60 * 60 * 1000;
-  });
+  // Tentukan dataset permulaan (localStorage → default → pertama ada)
+  function resolveInitialKey() {
+    let stored = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch (e) { /* storage blocked */ }
+    if (stored && DATASETS[stored]) return stored;
+    if (window.DEFAULT_DATASET && DATASETS[window.DEFAULT_DATASET]) return window.DEFAULT_DATASET;
+    return Object.keys(DATASETS)[0];
+  }
+
+  let activeKey = resolveInitialKey();
+
+  // State aktif (diset semula setiap kali tukar dataset)
+  let EXAMS = [];
+  let SUBJECT_ORDER = [];
+  let BREAKS = {};
+  let META = {};
+
+  function loadDataset(key) {
+    const ds = DATASETS[key];
+    if (!ds) return;
+    activeKey = key;
+    META = ds;
+    SUBJECT_ORDER = ds.subjectOrder || [];
+    BREAKS = ds.breaks || {};
+    // Salin + normalkan (startMs/endMs dikira sekali)
+    EXAMS = (ds.exams || []).map(e => {
+      const startMs = new Date(e.start).getTime();
+      return Object.assign({}, e, {
+        startMs,
+        endMs: e.end ? new Date(e.end).getTime() : startMs + 3 * 60 * 60 * 1000
+      });
+    });
+  }
 
   // ── Malay date formatting ────────────────────────────
   const DAYS_MY = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
@@ -23,6 +56,11 @@
   /** Returns a Date whose UTC getters give MYT (UTC+8) wall-clock time. */
   function dateInMYT(ms) {
     return new Date(ms + 8 * 60 * 60 * 1000);
+  }
+
+  function dayKey(ms) {
+    const d = dateInMYT(ms);
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
   }
 
   function formatFullDate(ms) {
@@ -80,22 +118,16 @@
   }
 
   // ── iCalendar (.ics) export ──────────────────────────
-  /**
-   * Format a timestamp as iCalendar local time (YYYYMMDDTHHMMSS) in MYT.
-   * Used with TZID=Asia/Kuala_Lumpur reference in VEVENT.
-   */
   function icsLocalTime(ms) {
     const d = dateInMYT(ms);
     return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}`;
   }
 
-  /** Format a timestamp as iCalendar UTC time (YYYYMMDDTHHMMSSZ). */
   function icsUtcTime(ms) {
     const d = new Date(ms);
     return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
   }
 
-  /** Format a timestamp as iCalendar date-only (YYYYMMDD) in MYT. */
   function icsDate(ms) {
     const d = dateInMYT(ms);
     return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}`;
@@ -111,11 +143,11 @@
   }
 
   /**
-   * Build an iCalendar document from exam entries.
+   * Build an iCalendar document from the active dataset.
    * Multi-day exams (end spans more than 24 hours) become all-day events
    * because the actual slot is per-candidate.
    */
-  function buildICS(exams, now) {
+  function buildICS(now) {
     const dtstamp = icsUtcTime(now);
     const lines = [
       'BEGIN:VCALENDAR',
@@ -123,9 +155,9 @@
       'PRODID:-//SPM 2026 Countdown//MY',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      'X-WR-CALNAME:SPM 2026',
+      `X-WR-CALNAME:${icsEscape(META.calName || 'Peperiksaan')}`,
       'X-WR-TIMEZONE:Asia/Kuala_Lumpur',
-      'X-WR-CALDESC:Jadual peperiksaan Sijil Pelajaran Malaysia 2026',
+      `X-WR-CALDESC:${icsEscape(META.calDesc || '')}`,
       // Minimal VTIMEZONE (Malaysia has no DST)
       'BEGIN:VTIMEZONE',
       'TZID:Asia/Kuala_Lumpur',
@@ -138,16 +170,18 @@
       'END:VTIMEZONE'
     ];
 
-    exams.forEach(exam => {
-      const slug = (exam.subject + '-' + exam.paper + '-' + exam.startMs)
+    const prefix = META.summaryPrefix || 'Exam';
+    const baseDesc = META.eventDesc || 'Peperiksaan';
+    const category = META.category || 'Peperiksaan';
+
+    EXAMS.forEach(exam => {
+      const slug = (activeKey + '-' + exam.subject + '-' + exam.paper + '-' + exam.startMs)
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
       const uid = `${slug}@aizuddin13.github.io`;
-      const summary = `SPM: ${exam.subject} — ${exam.paper}`;
-      const description = exam.tag
-        ? `Peperiksaan SPM 2026 (${exam.tag})`
-        : 'Peperiksaan SPM 2026';
+      const summary = `${prefix}: ${exam.subject} — ${exam.paper}`;
+      const description = exam.tag ? `${baseDesc} (${exam.tag})` : baseDesc;
 
       lines.push('BEGIN:VEVENT');
       lines.push(`UID:${uid}`);
@@ -155,8 +189,7 @@
 
       const durationMs = exam.endMs - exam.startMs;
       if (durationMs > 86400000) {
-        // All-day event (Bertutur sessions assigned per candidate)
-        // DTEND exclusive — add one day to last day
+        // All-day event (sessions assigned per candidate)
         const endPlusOne = exam.endMs + 86400000;
         lines.push(`DTSTART;VALUE=DATE:${icsDate(exam.startMs)}`);
         lines.push(`DTEND;VALUE=DATE:${icsDate(endPlusOne)}`);
@@ -167,11 +200,11 @@
 
       lines.push(`SUMMARY:${icsEscape(summary)}`);
       lines.push(`DESCRIPTION:${icsEscape(description)}`);
-      lines.push('CATEGORIES:SPM 2026');
+      lines.push(`CATEGORIES:${icsEscape(category)}`);
       lines.push('STATUS:CONFIRMED');
       lines.push('TRANSP:OPAQUE');
 
-      // Reminder: 1 day before (not for all-day Bertutur — the slot is per-candidate)
+      // Reminder: 1 day before (not for all-day sessions)
       if (durationMs <= 86400000) {
         lines.push('BEGIN:VALARM');
         lines.push('ACTION:DISPLAY');
@@ -188,14 +221,14 @@
     return lines.join('\r\n') + '\r\n';
   }
 
-  /** Trigger a download of the .ics file. */
+  /** Trigger a download of the .ics file for the active dataset. */
   function downloadICS() {
-    const ics = buildICS(EXAMS, Date.now());
+    const ics = buildICS(Date.now());
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'SPM-2026.ics';
+    a.download = META.icsFile || 'peperiksaan.ics';
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -219,8 +252,7 @@
   function groupByDay() {
     const map = new Map();
     EXAMS.forEach(e => {
-      const d = dateInMYT(e.startMs);
-      const key = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+      const key = dayKey(e.startMs);
       if (!map.has(key)) {
         map.set(key, { key, startMs: e.startMs, endMs: e.endMs, items: [] });
       }
@@ -287,6 +319,20 @@
         : formatShortDate(day.startMs);
       const dayNameText = rangeItem ? 'Minggu peperiksaan' : formatDayName(day.startMs);
 
+      const breakTime = BREAKS[day.key];
+      const breakHTML = breakTime
+        ? `<div class="tl-break" title="Masa minum pagi">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+               <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+               <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+               <line x1="6" y1="1" x2="6" y2="4"></line>
+               <line x1="10" y1="1" x2="10" y2="4"></line>
+               <line x1="14" y1="1" x2="14" y2="4"></line>
+             </svg>
+             <span>Minum pagi · ${breakTime}</span>
+           </div>`
+        : '';
+
       const row = document.createElement('div');
       row.className = 'tl-day';
       row.dataset.start = day.startMs;
@@ -304,6 +350,7 @@
               <span class="tl-time">${formatTime(e.startMs)}</span>
             </div>
           `).join('')}
+          ${breakHTML}
         </div>
         <div class="tl-count"><span class="tc-value">—</span></div>
       `;
@@ -311,6 +358,34 @@
     });
 
     document.getElementById('timelineCount').textContent = `${days.length} hari`;
+  }
+
+  // ── Dataset-specific chrome (brand, footer, labels) ──
+  function renderChrome() {
+    setText('brandMark', META.brandMark);
+    setText('brandYear', META.brandYear);
+    setText('brandSub', META.brandSub);
+    setText('footerSource', META.footerSource);
+    if (META.docTitle) document.title = META.docTitle;
+
+    // Label statistik kertas terakhir: ikut tarikh kertas akhir
+    const lastExam = EXAMS.reduce((max, e) => e.endMs > max.endMs ? e : max, EXAMS[0]);
+    const statLastLabel = document.getElementById('statLastLabel');
+    if (statLastLabel && lastExam) {
+      statLastLabel.textContent = `ke kertas terakhir (${formatShortDate(lastExam.endMs)})`;
+    }
+
+    // Keadaan butang toggle
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      const on = btn.dataset.mode === activeKey;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el && value != null) el.textContent = value;
   }
 
   // ── Hero ─────────────────────────────────────────────
@@ -330,13 +405,14 @@
       hero.classList.add('done');
       labelEl.textContent = 'Semua Peperiksaan Selesai';
       subjectEl.textContent = 'Tahniah!';
-      paperEl.textContent = 'Semua kertas peperiksaan SPM 2026 telah selesai.';
+      paperEl.textContent = META.doneText || 'Semua kertas peperiksaan telah selesai.';
       dateEl.textContent = 'Semoga keputusan menyebelahi anda.';
       document.getElementById('heroCountdown').hidden = true;
       return;
     }
 
     hero.classList.remove('done');
+    document.getElementById('heroCountdown').hidden = false;
     subjectEl.textContent = exam.subject;
     paperEl.textContent = exam.paper;
     dateEl.textContent = exam.end && (exam.endMs - exam.startMs) > 86400000
@@ -348,7 +424,7 @@
   let currentHeroKey = null;
 
   function examKey(e) {
-    return e ? `${e.subject}|${e.paper}|${e.startMs}` : null;
+    return e ? `${activeKey}|${e.subject}|${e.paper}|${e.startMs}` : null;
   }
 
   function updateNow(nowMs) {
@@ -366,6 +442,9 @@
   function tick() {
     const nowMs = Date.now();
     updateNow(nowMs);
+
+    if (!EXAMS.length) return;
+
     const nextExam = findNextExam(nowMs);
     const nextKey = examKey(nextExam);
 
@@ -471,6 +550,28 @@
     });
   }
 
+  // ── Mode toggle ──────────────────────────────────────
+  function switchDataset(key) {
+    if (!DATASETS[key] || key === activeKey) return;
+    loadDataset(key);
+    try { localStorage.setItem(STORAGE_KEY, key); } catch (e) { /* storage blocked */ }
+    currentHeroKey = null;
+    renderAll();
+  }
+
+  function initModeToggle() {
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchDataset(btn.dataset.mode));
+    });
+  }
+
+  function renderAll() {
+    renderChrome();
+    renderSubjects();
+    renderTimeline();
+    tick();
+  }
+
   // ── Theme toggle ─────────────────────────────────────
   function initTheme() {
     const btn = document.getElementById('themeToggle');
@@ -539,15 +640,15 @@
 
   // ── Boot ─────────────────────────────────────────────
   function init() {
-    if (!EXAMS.length) {
-      console.error('SPM_EXAMS data tidak dimuatkan. Pastikan src/js/data.js dimuatkan dahulu.');
+    if (!Object.keys(DATASETS).length) {
+      console.error('EXAM_DATASETS tidak dimuatkan. Pastikan src/js/data.js dimuatkan dahulu.');
       return;
     }
-    renderSubjects();
-    renderTimeline();
+    loadDataset(activeKey);
+    initModeToggle();
     initTheme();
     initCalendarExport();
-    tick();
+    renderAll();
     setInterval(tick, 1000);
   }
 
